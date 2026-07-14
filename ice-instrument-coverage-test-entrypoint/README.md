@@ -30,17 +30,22 @@ representation (`tokens: None`), which `Attribute::token_trees()` requires.
 
 ## Repro Steps
 
-```sh
-cd ice-instrument-coverage-test-entrypoint
-RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo test
-```
-
-Or using `cargo llvm-cov` (toolchain from `rust-toolchain.toml`, i.e. `nightly-2026-07-14`):
+### Via `cargo test` with `-C instrument-coverage`
 
 ```sh
 cd ice-instrument-coverage-test-entrypoint
-RUSTFLAGS="--cfg coverage_nightly" cargo llvm-cov --all-features
+RUST_BACKTRACE=1 RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo test
 ```
+
+### Via `cargo llvm-cov` (requires [`cargo-llvm-cov`](https://github.com/taiki-e/cargo-llvm-cov))
+
+```sh
+cargo install cargo-llvm-cov  # one-time setup
+cd ice-instrument-coverage-test-entrypoint
+RUST_BACKTRACE=1 RUSTFLAGS="--cfg coverage_nightly" cargo llvm-cov --all-features
+```
+
+Both commands use the toolchain pinned in `rust-toolchain.toml` (`nightly-2026-07-14`).
 
 Expected: tests compile and run normally.
 
