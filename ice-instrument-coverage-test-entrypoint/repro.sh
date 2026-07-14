@@ -52,7 +52,7 @@ trap 'mv "$CARGO_TOML_BAK" "$CARGO_TOML"' EXIT
 
 sed -i "s/^edition = .*/edition = \"$EDITION\"/" "$CARGO_TOML"
 
-echo "==> Running: RUSTFLAGS=\"-C instrument-coverage --cfg coverage_nightly\" cargo +$TOOLCHAIN test"
+echo "==> Running: RUST_BACKTRACE=1 RUSTFLAGS=\"-C instrument-coverage --cfg coverage_nightly\" cargo +$TOOLCHAIN test"
 echo ""
 
-RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo "+$TOOLCHAIN" test --manifest-path "$CARGO_TOML"
+RUST_BACKTRACE=1 RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo "+$TOOLCHAIN" test --manifest-path "$CARGO_TOML"
