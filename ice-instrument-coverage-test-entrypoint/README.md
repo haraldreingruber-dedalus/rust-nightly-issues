@@ -2,7 +2,7 @@
 
 ## Bug Description
 
-`rustc 1.99.0-nightly (daf2e5e18 2026-07-13)` panics with an ICE in
+`rustc 1.99.0-nightly (daf2e5e18 2026-07-13)` (released as `nightly-2026-07-14`) panics with an ICE in
 `rustc_ast/src/attr/mod.rs` when compiling with `-C instrument-coverage`
 (used by `cargo llvm-cov`) together with the `coverage_attribute` feature
 and `#[coverage(off)]` attributes.
@@ -25,8 +25,8 @@ representation (`tokens: None`), which `Attribute::token_trees()` requires.
 
 ### Regression window
 
-- **Good:** nightly-2026-07-12
-- **Bad:** nightly-2026-07-13 (commit `daf2e5e18`)
+- **Good:** nightly-2026-07-13
+- **Bad:** nightly-2026-07-14 (commit `daf2e5e18`)
 
 ## Repro Steps
 
@@ -35,7 +35,7 @@ cd ice-instrument-coverage-test-entrypoint
 RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo test
 ```
 
-Or using `cargo llvm-cov`:
+Or using `cargo llvm-cov` (toolchain from `rust-toolchain.toml`, i.e. `nightly-2026-07-14`):
 
 ```sh
 cd ice-instrument-coverage-test-entrypoint
