@@ -4,7 +4,8 @@
 
 `rustc 1.99.0-nightly (daf2e5e18 2026-07-13)` panics with an ICE in
 `rustc_ast/src/attr/mod.rs` when compiling with `-C instrument-coverage`
-(used by `cargo llvm-cov`).
+(used by `cargo llvm-cov`) together with the `coverage_attribute` feature
+and `#[coverage(off)]` attributes.
 
 ### Panic message
 
@@ -14,11 +15,13 @@ attribute is missing tokens: ... rustc_test_entrypoint_marker
 
 ### Root cause
 
-The compiler's internal `rustc_test_entrypoint_marker` attribute (injected
-when processing `#[test]` functions) is missing its token representation
-(`tokens: None`), which `Attribute::token_trees()` requires. This is called
-from the macro expansion path (`fully_expand_fragment`), triggered by the
-coverage instrumentation pass.
+The ICE is triggered by the interaction of `-C instrument-coverage` +
+`feature(coverage_attribute)` + `#[coverage(off)]` attributes. The
+`coverage_attribute` feature causes the compiler to parse and process those
+attributes during macro expansion (`fully_expand_fragment`), which is where
+the panic occurs: the internal `rustc_test_entrypoint_marker` attribute
+(injected when processing `#[test]` functions) is missing its token
+representation (`tokens: None`), which `Attribute::token_trees()` requires.
 
 ### Regression window
 
@@ -29,16 +32,27 @@ coverage instrumentation pass.
 
 ```sh
 cd ice-instrument-coverage-test-entrypoint
-RUSTFLAGS="-C instrument-coverage" cargo test
+RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo test
+```
+
+Or using `cargo llvm-cov`:
+
+```sh
+cd ice-instrument-coverage-test-entrypoint
+RUSTFLAGS="--cfg coverage_nightly" cargo llvm-cov --all-features
 ```
 
 Expected: tests compile and run normally.
 
 Actual: ICE / compiler panic.
 
-## Notes
+## Key details
 
-- The `edition = "2024"` in `Cargo.toml` appears to be a factor; try
+- The `--cfg coverage_nightly` flag (passed via `RUSTFLAGS`) is essential: it
+  activates both `feature(coverage_attribute)` and the `#[coverage(off)]`
+  attribute simultaneously, replicating the exact conditions under which the
+  ICE occurs.
+- `edition = "2024"` in `Cargo.toml` appears to be a factor; try
   `edition = "2021"` to check whether the edition matters.
 - The `#[serial]` attribute is **not** needed to reproduce.
 - Tracked upstream: <https://github.com/rust-lang/rust> around commit
