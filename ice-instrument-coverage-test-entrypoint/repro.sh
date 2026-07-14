@@ -56,3 +56,9 @@ echo "==> Running: RUST_BACKTRACE=1 RUSTFLAGS=\"-C instrument-coverage --cfg cov
 echo ""
 
 RUST_BACKTRACE=1 RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo "+$TOOLCHAIN" test --manifest-path "$CARGO_TOML"
+
+echo ""
+echo "==> Running: RUST_BACKTRACE=1 RUSTFLAGS=\"--cfg coverage_nightly\" cargo +$TOOLCHAIN llvm-cov --all-features"
+echo ""
+
+RUST_BACKTRACE=1 RUSTFLAGS="--cfg coverage_nightly" cargo "+$TOOLCHAIN" llvm-cov --all-features --manifest-path "$CARGO_TOML"

@@ -27,6 +27,11 @@ jobs:
       - name: Install rustup toolchain
         run: rustup toolchain install ${{ inputs.toolchain }} --no-self-update
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
       - name: Print compiler version
         run: rustc +"${{ inputs.toolchain }}" --version --verbose
 
