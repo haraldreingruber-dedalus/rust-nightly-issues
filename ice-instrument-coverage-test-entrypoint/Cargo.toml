@@ -1,0 +1,4 @@
+[package]
+name = "ice-instrument-coverage-test-entrypoint"
+version = "0.1.0"
+edition = "2024"
