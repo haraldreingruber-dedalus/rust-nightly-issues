@@ -27,9 +27,21 @@ jobs:
       - name: Install rustup toolchain
         run: rustup toolchain install ${{ inputs.toolchain }} --no-self-update
 
+      - name: Print compiler version
+        run: rustc +"${{ inputs.toolchain }}" --version --verbose
+
       - name: Run repro script
+        continue-on-error: true
         run: |
           chmod +x ice-instrument-coverage-test-entrypoint/repro.sh
           ice-instrument-coverage-test-entrypoint/repro.sh \
             --edition "${{ inputs.edition }}" \
             --toolchain "${{ inputs.toolchain }}"
+
+      - name: Upload ICE logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ice-logs-${{ inputs.toolchain }}-edition${{ inputs.edition }}
+          path: rustc-ice-*.txt
+          if-no-files-found: warn
