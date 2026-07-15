@@ -28,7 +28,6 @@ jobs:
         run: rustc +"${{ inputs.toolchain }}" --version --verbose
 
       - name: Run repro script
-        continue-on-error: true
         run: |
           chmod +x ice-instrument-coverage-test-entrypoint/repro.sh
           ice-instrument-coverage-test-entrypoint/repro.sh \
@@ -39,5 +38,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ice-logs-${{ inputs.toolchain }}
-          path: rustc-ice-*.txt
+          path: ice-instrument-coverage-test-entrypoint/rustc-ice-*.txt
           if-no-files-found: warn
