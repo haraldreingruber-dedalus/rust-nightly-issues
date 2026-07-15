@@ -3,14 +3,6 @@ name: ICE repro – instrument-coverage + test entrypoint
 on:
   workflow_dispatch:
     inputs:
-      edition:
-        description: "Rust edition"
-        required: true
-        default: "2024"
-        type: choice
-        options:
-          - "2024"
-          - "2021"
       toolchain:
         description: "Rust nightly toolchain (e.g. nightly or nightly-2026-07-13)"
         required: true
@@ -19,7 +11,7 @@ on:
 
 jobs:
   repro:
-    name: Reproduce ICE (edition=${{ inputs.edition }}, toolchain=${{ inputs.toolchain }})
+    name: Reproduce ICE (toolchain=${{ inputs.toolchain }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,13 +32,12 @@ jobs:
         run: |
           chmod +x ice-instrument-coverage-test-entrypoint/repro.sh
           ice-instrument-coverage-test-entrypoint/repro.sh \
-            --edition "${{ inputs.edition }}" \
             --toolchain "${{ inputs.toolchain }}"
 
       - name: Upload ICE logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ice-logs-${{ inputs.toolchain }}-edition${{ inputs.edition }}
+          name: ice-logs-${{ inputs.toolchain }}
           path: rustc-ice-*.txt
           if-no-files-found: warn
