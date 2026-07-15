@@ -1,0 +1,9 @@
+[package]
+name = "ice-repro-2"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mockall = "0.15"
+mockall_double = "0.3.1"
+serial_test = { version = "3.5.0", default-features = false }
