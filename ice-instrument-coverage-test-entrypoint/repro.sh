@@ -1,34 +1,31 @@
 #!/usr/bin/env bash
 # Reproduce the ICE: rustc panics with
 #   "attribute is missing tokens: rustc_test_entrypoint_marker"
-# when compiling with -C instrument-coverage on a nightly build.
+# when compiling with -C instrument-coverage on nightly-2026-07-14.
+#
+# Trigger: mockall_double's #[double] on a use item + #[serial] on #[test]
+# functions causes the coverage instrumentation pass to call token_trees() on a
+# rustc_test_entrypoint_marker attribute that has tokens: None.
 #
 # Usage:
-#   ./repro.sh [--edition <2021|2024>] [--toolchain <nightly|nightly-YYYY-MM-DD>]
+#   ./repro.sh [--toolchain <nightly|nightly-YYYY-MM-DD>]
 #
-# Defaults:
-#   --edition   2024
-#   --toolchain nightly
+# Default: --toolchain nightly-2026-07-14
 
 set -euo pipefail
 
-EDITION="2024"
-TOOLCHAIN="nightly"
+TOOLCHAIN="nightly-2026-07-14"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --edition)
-            EDITION="$2"
-            shift 2
-            ;;
         --toolchain)
             TOOLCHAIN="$2"
             shift 2
             ;;
         *)
             echo "Unknown argument: $1" >&2
-            echo "Usage: $0 [--edition <2021|2024>] [--toolchain <nightly|nightly-YYYY-MM-DD>]" >&2
+            echo "Usage: $0 [--toolchain <nightly|nightly-YYYY-MM-DD>]" >&2
             exit 1
             ;;
     esac
@@ -36,29 +33,15 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CARGO_TOML="$SCRIPT_DIR/Cargo.toml"
-CARGO_TOML_BAK="$CARGO_TOML.bak"
 
 echo "==> Repro parameters"
-echo "    Edition:   $EDITION"
 echo "    Toolchain: $TOOLCHAIN"
 echo ""
 
 # Ensure the requested toolchain is installed
 rustup toolchain install "$TOOLCHAIN" --no-self-update
 
-# Patch edition in Cargo.toml and restore it on exit
-cp "$CARGO_TOML" "$CARGO_TOML_BAK"
-trap 'mv "$CARGO_TOML_BAK" "$CARGO_TOML"' EXIT
-
-sed -i "s/^edition = .*/edition = \"$EDITION\"/" "$CARGO_TOML"
-
 echo "==> Running: RUST_BACKTRACE=1 RUSTFLAGS=\"-C instrument-coverage --cfg coverage_nightly\" cargo +$TOOLCHAIN test"
 echo ""
 
 RUST_BACKTRACE=1 RUSTFLAGS="-C instrument-coverage --cfg coverage_nightly" cargo "+$TOOLCHAIN" test --manifest-path "$CARGO_TOML"
-
-echo ""
-echo "==> Running: RUST_BACKTRACE=1 RUSTFLAGS=\"--cfg coverage_nightly\" cargo +$TOOLCHAIN llvm-cov --all-features"
-echo ""
-
-RUST_BACKTRACE=1 RUSTFLAGS="--cfg coverage_nightly" cargo "+$TOOLCHAIN" llvm-cov --all-features --manifest-path "$CARGO_TOML"
